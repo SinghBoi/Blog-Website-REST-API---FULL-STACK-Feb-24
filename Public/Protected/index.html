@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog</title>
+    <style>
+        /* Basic styling for demonstration purposes */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .container {
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            /* Aligns items on opposite ends */
+            align-items: flex-start;
+            /* Aligns items at the top */
+        }
+
+        .blog-container {
+            width: 65%;
+            /* Adjust the width of the blog section */
+        }
+
+        .create-post-container {
+            width: 30%;
+            /* Adjust the width of the create post section */
+        }
+
+        .blog-post {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 20px;
+        }
+
+        .blog-post:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .comment-form {
+            margin-top: 10px;
+        }
+
+        .comment-form input[type="text"],
+        .comment-form textarea {
+            width: 100%;
+            margin-bottom: 5px;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+
+        .comment-form input[type="submit"] {
+            padding: 5px 10px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+
+        .login-section {
+            text-align: right;
+        }
+
+        /* Styles for create post form */
+        .create-post-form {
+            padding: 20px;
+            background-color: #f4f4f4;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .create-post-form h2 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .create-post-form label {
+            font-weight: bold;
+        }
+
+        .create-post-form input[type="text"],
+        .create-post-form textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .create-post-form textarea {
+            resize: vertical;
+        }
+
+        .create-post-form input[type="submit"] {
+            background-color: #333;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .create-post-form input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <h1>My Blog</h1>
+            <div class="login-section" id="login-section">
+                <!-- Username will be filled in by JavaScript -->
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="blog-container">
+            <h2>Latest Blog Posts</h2>
+            <div class="blog-post">
+                <h3>Blog Post Title 1</h3>
+                <p>This is a brief summary of the blog post content...</p>
+                <form class="comment-form" action="comment" method="post">
+                    <!-- <input type="text" name="comment_name" placeholder="Your Name" required><br> -->
+                    <textarea name="comment_content" placeholder="Your Comment" rows="3" required></textarea><br>
+                    <input type="submit" value="Post Comment">
+                </form>
+            </div>
+            <div class="blog-post">
+                <h3>Blog Post Title 2</h3>
+                <p>This is another brief summary of another blog post...</p>
+                <form class="comment-form" action="comment" method="post">
+                    <!-- <input type="text" name="comment_name" placeholder="Your Name" required><br> -->
+                    <textarea name="comment_content" placeholder="Your Comment" rows="3" required></textarea><br>
+                    <input type="submit" value="Post Comment">
+                </form>
+            </div>
+            <!-- More blog posts can be added similarly -->
+        </div>
+
+        <div class="create-post-container">
+            <div class="create-post-form">
+                <h2>New Blog Post</h2>
+                <form action="submit" method="POST">
+                    <label for="title">Title:</label><br>
+                    <input type="text" id="title" name="title" required><br><br>
+
+                    <label for="content">Content:</label><br>
+                    <textarea id="content" name="content" rows="5" cols="50" required></textarea><br><br>
+
+                    <input type="submit" value="Create Post">
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulate a logged-in user with the username "User"
+        var loggedInUser = "User";
+
+        // Display the username in the header
+        var loginSection = document.getElementById("login-section");
+        loginSection.innerHTML = "<span>Welcome, " + loggedInUser + "!</span><button onclick=\"logout()\">Logout</button>";
+
+        function logout() {
+            // Perform logout operation here, e.g., redirect to logout page
+            alert("Logged out successfully!");
+        }
+    </script>
+</body>
+
+</html>
