@@ -48,40 +48,37 @@ app.post("/login", async (req, res) => {
 
     try {
         if (!await redisClient.exists(`user:${username}`)) {
-            return res.json({ status: "error", message: "No Such Username Exists" });
+            return res.status(401).send("No Such Username Exists");
         }
         const dbPassword = await redisClient.get(`user:${username}`);
         if (!compareSync(password, dbPassword)) {
-            res.json({ status: "error", message: "Invalid Credentials" });
+            res.status(401).send("Invalid Credentials");
         }
         const token = jwt.sign({
             username: username, canViewProtectedPage: true
         }, "secret", { expiresIn: 1000 * 60 * 10 })
         res.cookie("token", token);
 
-        const redirectUrl = "./Protected"
-        //res.json({ status: "success", message: `Welcome ${username}!`, redirect: redirectUrl });
-        res.redirect(redirectUrl)
+        res.redirect("./Protected")
 
     } catch (err) {
         console.log(err);
-        res.status(500).json({ status: "error", message: "Internal Server Error" });
+        res.status(500).send("Internal Server Error");
     }
 });
 
 app.post("/register", async (req, res) => {
     const { username, password } = req.body;
     if (await redisClient.exists(`user:${username}`)) {
-        return res.json({ status: "error", message: "Username Already Exists" });
+        return res.status(401).send("Username Already Exists");
     }
     if (!validatePassword(password)) {
-        return res.json({
-            status: "error", message: "Password length must be atleast 8 characters,\
-        contain one numeric character and one special character" });
+        return res.send("Password length must be atleast 8 characters,\
+        contain one numeric character and one special character");
     }
     const hashedPassword = hashSync(password, 10);
     await redisClient.set(`user:${username}`, hashedPassword);
-    res.json({ status: "success", message: "Registered Successfully" });
+    res.send("Registered Successfully");
 });
 
 function validatePassword(password) {
@@ -91,6 +88,28 @@ function validatePassword(password) {
 
     return password.length >= 8 && char.test(password) && num.test(password);
 }
+
+app.post("/create", async (req, res) => {
+    const { title, content } = req.body;
+    const userName = jwt.verify(req.cookies.token, "secret").username;
+
+    try {
+        // Assuming you store blog posts as JSON objects in a list named 'blogPosts'
+        const newPost = {
+            title,
+            content,
+            author: userName,
+            timestamp: new Date(),
+        };
+        await redisClient.rPush("blogPosts", JSON.stringify(newPost));
+
+        // Redirect to the main page after adding the blog post
+        res.redirect("./Protected");
+    } catch (error) {
+        console.error("Error adding blog post to Redis:", error);
+        res.status(500).send("Internal Server Error");
+    }
+});
 
 // Den här ska ligga sist. Då körs alla funktioner i respektive get först.
 app.use(express.static("Public"));
