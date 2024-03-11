@@ -1,104 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Blog Site - Login/Register</title>
     <style>
-        body {
-            background-image: url(B1.jpg);
-            background-size: cover;
-            background-position: center;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+      body {
+        background-image: url(B1.jpg);
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
 
-        .container {
-            color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
-            display: flex;
-            width: 100%;
-        }
+      .container {
+        color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+        display: flex;
+        width: 100%;
+      }
 
-        .left {
-            flex: 3;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+      .left {
+        flex: 3;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
-        .right {
-            flex: 1;
-            padding: 20px;
-        }
+      .right {
+        flex: 1;
+        padding: 20px;
+      }
 
-        .login-box,
-        .register-box {
-            color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-        }
+      .login-box,
+      .register-box {
+        color: #fff;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+      }
 
-        h1 {
-            text-align: center;
-        }
+      h1 {
+        text-align: center;
+      }
 
-        h2 {
-            text-align: center;
-        }
+      h2 {
+        text-align: center;
+      }
 
-        input[type="text"],
-        input[type="password"],
-        input[type="submit"] {
-            width: 100%;
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
+      input[type="text"],
+      input[type="password"],
+      input[type="submit"] {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        box-sizing: border-box;
+      }
 
-        input[type="submit"] {
-            background-color: #007bff;
-            color: #fff;
-            cursor: pointer;
-        }
+      input[type="submit"] {
+        background-color: #007bff;
+        color: #fff;
+        cursor: pointer;
+      }
 
-        input[type="submit"]:hover {
-            background-color: #0056b3;
-        }
+      input[type="submit"]:hover {
+        background-color: #0056b3;
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <div class="container">
-        <div class="left">
-            <h1>Welcome to Tech Blog</h1>
+      <div class="left">
+        <h1>Welcome to Tech Blog</h1>
+      </div>
+      <div class="right">
+        <div class="login-box">
+          <h2>Login</h2>
+          <form id="loginForm" action="login" method="post">
+            <input
+              type="text"
+              name="username"
+              placeholder="Username"
+              required
+            />
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              required
+            />
+            <input type="submit" value="Login" />
+          </form>
         </div>
-        <div class="right">
-            <div class="login-box">
-                <h2>Login</h2>
-                <form id="loginForm" action="login" method="post">
-                    <input type="text" name="username" placeholder="Username" required>
-                    <input type="password" name="password" placeholder="Password" required>
-                    <input type="submit" value="Login">
-                </form>
-            </div>
-            <div class="register-box">
-                <h2>Register</h2>
-                <form id="registerForm" action="register" method="post">
-                    <input type="text" name="username" placeholder="Username" required>
-                    <input type="password" name="password" placeholder="Password" required>
-                    <input type="submit" value="Register">
-                </form>
-            </div>
+        <div class="register-box">
+          <h2>Register</h2>
+          <form id="registerForm" action="register" method="post">
+            <input
+              type="text"
+              name="username"
+              placeholder="Username"
+              required
+            />
+            <input
+              type="password"
+              name="password"
+              placeholder="Password"
+              required
+            />
+            <input type="submit" value="Register" />
+          </form>
         </div>
+      </div>
     </div>
-</body>
-
+    <script type="module" src="auth.js"></script>
+  </body>
 </html>
