@@ -29,17 +29,17 @@ app.use(cookieParser());
 
 app.use(express.static(path.join(__dirname)));
 
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
 
-const crypton = crypto.randomBytes(16).toString('base64');
+const crypton = crypto.randomBytes(16).toString("base64");
 
 app.use(
     helmet({
         contentSecurityPolicy: {
             directives: {
                 defaultSrc: ["'self'"],
-                scriptSrc: ["'self'", `'crypton-${crypton}'`],
+                scriptSrc: ["'self'", `"crypton-${crypton}"`],
                 upgradeInsecureRequests: null
             },
         },
@@ -49,8 +49,8 @@ app.use(
 // Manage sessions via Redis
 app.use(
     session({
-        redisStore: new RedisStore({ client: redisClient}),
-        secret: 'myUnsafeSecret',
+        redisStore: new RedisStore({ client: redisClient }),
+        secret: "myUnsafeSecret",
         resave: false,
         saveUninitialized: false,
         cookie: {
@@ -67,7 +67,7 @@ function authenticate(req, res, next) {
     if (req.session.isLoggedIn) {
         return next();
     } else {
-        return res.status(403).send('Forbidden: You are not authorized.');
+        return res.status(403).send("Forbidden: You are not authorized.");
     }
 };
 
@@ -81,13 +81,13 @@ function verifyCsrfToken(req, res, next) {
 }
 
 // Oauth 2.0
-app.get('/auth/github', (req, res) => {
-    const authURL = `https://github.com/login/oauth/authorize?client_id=89f264fccccb387e4ceb `
+app.get("/auth/github", (req, res) => {
+    const authURL = "https://github.com/login/oauth/authorize?client_id=89f264fccccb387e4ceb"
     res.redirect(authURL)
 })
 
 // Oauth Callback
-app.get('/auth/github/callback', async (req, res) => {
+app.get("/auth/github/callback", async (req, res) => {
     const code = req.query.code;
     try {
         const response = await fetch("https://github.com/login/oauth/access_token", {
@@ -113,12 +113,12 @@ app.get('/auth/github/callback', async (req, res) => {
         const userExists = await redisClient.exists(`user:${req.session.username}`);
 
         if (!userExists) {
-            await redisClient.hSet(`user:${req.session.username}`, 'role', 'user');
+            await redisClient.hSet(`user:${req.session.username}`, "role", "user");
         }
-        res.redirect('/BlogView');
+        res.redirect("/BlogView");
     } catch (error) {
-        console.error('Error during GitHub callback:', error);
-        res.status(500).send('Internal Server Error');
+        console.error("Error during GitHub callback:", error);
+        res.status(500).send("Internal Server Error");
     }
 });
 
@@ -131,17 +131,17 @@ const getUserInfoFromGitHub = async (access_token) => {
     return await response.json();
 };
 
-app.get('/', (req, res) => {
-    const filePath = path.join(__dirname, 'public', 'index.html');
+app.get("/", (req, res) => {
+    const filePath = path.join(__dirname, "public", "index.html");
     res.sendFile(filePath);
 });
 
 // Inloggningsroute
-app.get('/login', (req, res) => {
+app.get("/login", (req, res) => {
     if (req.session.authenticated) {
-        res.redirect('/BlogView');
+        res.redirect("/BlogView");
     } else {
-        const filePath = path.join(__dirname, 'public', 'index.html');
+        const filePath = path.join(__dirname, "public", "index.html");
         res.sendFile(filePath);
     }
 });
@@ -199,20 +199,20 @@ app.post("/register", async (req, res) => {
 
     const hashedPassword = hashSync(password, 10);
     await redisClient.hSet(`user:${username}`, hashedPassword);
-    await redisClient.hSet(`user:${newUsername}`, 'role', 'user');
+    await redisClient.hSet(`user:${newUsername}`, "role", "user");
 
     res.status(200).send("Registered Successfully");
 });
 
-app.get('/BlogView', authenticate, async (req, res) => {
+app.get("/BlogView", authenticate, async (req, res) => {
     const role = await redisClient.hGet(`user:${req.session.username}`, "role");
     try {
         const blogPosts = await getAllBlogPosts();
-        res.render('BlogView',
+        res.render("BlogView",
             { username: req.session.username, blogPosts, csrfToken: req.session.csrfToken, crypto });
     } catch (error) {
-        console.error('Error retrieving blog posts:', error);
-        res.status(500).send('Internal Server Error');
+        console.error("Error retrieving blog posts:", error);
+        res.status(500).send("Internal Server Error");
     }
 });
 
@@ -220,7 +220,7 @@ app.get('/BlogView', authenticate, async (req, res) => {
 let blogPosts = [];
 
 const getAllBlogPosts = async () => {
-    const postIds = await redisClient.keys('blogpost:*');
+    const postIds = await redisClient.keys("blogpost:*");
     const blogPosts = await Promise.all(
         postIds.map(async (postId) => {
             const postData = await redisClient.hGetAll(postId);
@@ -237,7 +237,7 @@ app.post("/BlogView/create-post", verifyCsrfToken, authenticate, async (req, res
     try {
         const { title, content } = req.body;
         if (!title || !content) {
-            return res.status(400).send('Incomplete Post.');
+            return res.status(400).send("Incomplete Post.");
         }
 
         const userName = req.session.username;
@@ -247,13 +247,12 @@ app.post("/BlogView/create-post", verifyCsrfToken, authenticate, async (req, res
             title,
             content,
             author: userName,
-            created: moment(new Date()).format('YYYY-MM-DD HH:mm'),
-            comments: [],
+            created: moment(new Date()).format("YYYY-MM-DD HH:mm"),
         };
 
         // XSS = protection against inserting unauthorized <script, img etc>
         newPost.content = sanitize(newPost.content, {
-            allowedTags: ['b', 'i', 'u', 'strong', 'em', 'br',],
+            allowedTags: ["b", "i", "u", "strong", "em", "br",],
             allowedAttributes: {},
         });
 
@@ -285,22 +284,22 @@ app.post("/BlogView/comment/:postId", verifyCsrfToken, authenticate, async (req,
         const postId = req.params.postId;
         const { content } = req.body;
         const username = req.session.username;
-        const commentId = await redisClient.incr('nextCommentId');
+        const commentId = await redisClient.incr("nextCommentId");
 
         if (!content || content.trim() === '') {
-            return res.status(400).json({ error: 'Bad request.' });
+            return res.status(400).json({ error: "Bad request." });
         }
 
         const newComment = {
             commentId,
             content: commentContent,
             author: username,
-            created: moment(new Date()).format('YYYY-MM-DD HH:mm'),
+            created: moment(new Date()).format("YYYY-MM-DD HH:mm"),
         }
 
         // XSS = protection against inserting unauthorized <script, img etc>
         newComment.content = sanitize(newComment.content, {
-            allowedTags: ['b', 'i', 'u', 'strong', 'em', 'br',],
+            allowedTags: ["b", "i", "u", "strong", "em", "br",],
             allowedAttributes: {},
         });
 
@@ -309,7 +308,7 @@ app.post("/BlogView/comment/:postId", verifyCsrfToken, authenticate, async (req,
         const post = await redisClient.hGetAll(`blogpost:${postId}`);
         post.comments = await getAllComments(postId);
 
-        console.log('Comment Created')
+        console.log("Comment Created")
         res.redirect("/BlogView");
     } catch (error) {
         console.error("Error adding comment to Redis:", error);
@@ -323,12 +322,12 @@ app.post("/BlogView/delete-post/:postId", authenticate, async (req, res) => {
         const postId = req.params.postId;
         const username = req.session.username;
         const role = await redisClient.hGet(`user:${req.session.username}`, "role");
-        const blogPostOwner = await redisClient.hGet(`blogpost:${postId}`, 'username');
+        const blogPostOwner = await redisClient.hGet(`blogpost:${postId}`, "username");
 
         if (blogPostOwner !== username && role !== "admin") {
             console.log(blogPostOwner, username)
             return res.status(403).send(
-                'Forbidden: You are not the owner of this blog post and therefore cannot delete the post');
+                "Forbidden: You are not the owner of this blog post and therefore cannot delete the post");
         }
         await redisClient.del(`blogpost:${postId}`);
         console.log("deleted")
@@ -341,12 +340,12 @@ app.post("/BlogView/delete-post/:postId", authenticate, async (req, res) => {
 });
 
 // Logout
-app.post('/logout', (req, res) => {
-    console.log('Logged Out Successfully')
+app.post("/logout", (req, res) => {
+    console.log("Logged Out Successfully")
     req.session.destroy()
     res.redirect('/');
 });
 
 app.listen(9000, () => {
-    console.log("Server is Running");
+    console.log("Server is Running on port: 9000 ");
 });
