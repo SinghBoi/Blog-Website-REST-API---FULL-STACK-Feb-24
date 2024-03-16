@@ -1,0 +1,98 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+.header-container {
+    background-color: cadetblue;
+    padding: 10px;
+    text-align: center;
+}
+
+.top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0px 20px;
+    background-color: lightblue;
+    margin-top: 5px;
+}
+
+button {
+    color: #fff;
+    background-color: #555
+}
+
+.blandat {
+    margin-top: 20px;
+
+}
+
+.content {
+    margin-top: 20px;
+}
+
+.blog-post {
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 9px 9px 25px,
+        -9px -9px 25px;
+    display: flex;
+    flex-direction: column;
+}
+
+.poster {
+    margin-bottom: 0px;
+}
+
+.time {
+    margin-top: 3px;
+}
+
+.blog-container {
+    display: flex;
+}
+
+.blog-content {
+    width: 66.66%;
+}
+
+.create-post-container {
+    flex: 1;
+    padding: 20px;
+    margin-left: 50px;
+    height: 300px;
+    padding-bottom: 80px;
+    font-size: 17px;
+    box-shadow: 9px 9px 25px,
+        -9px -9px 25px;
+}
+
+#create-post-form input[type="text"],
+#create-post-form textarea {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+}
+
+#create-post-form textarea {
+    height: 150px;
+    resize: vertical;
+}
+
+.deleteButton {
+    width: fit-content;
+    align-self: flex-end;
+    margin-right: 30px;
+}
+
+.comment-container {
+    padding: 20px;
+    background-color: lightblue;
+    margin-top: 20px;
+    padding-bottom: 20px;
+}
+
+.com {
+    text-align: end;
+}
