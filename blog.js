@@ -156,7 +156,6 @@ app.post("/login", async (req, res) => {
         }
 
         const dbPassword = await redisClient.get(`user:${username}`, "password");
-        console.log(dbPassword);
         if (!bcrypt.compare(password, dbPassword)) {
             // Invalid credentials
             return res.status(401).send("Invalid Credentials");
@@ -269,7 +268,6 @@ const getAllComments = async (postId) => {
     const comments = await Promise.all(
         commentIds.map(async (commentId) => {
             const commentData = await redisClient.hGetAll(commentId);
-            console.log(commentData)
             return { commentId: commentId.split(':')[2], ...commentData };
         })
     );
@@ -319,9 +317,9 @@ app.post("/Main/delete/:postId", authenticate, async (req, res) => {
         const postId = req.params.postId;
         const username = req.session.username;
         const role = await redisClient.get(`user:${username}`, "role");
-        const blogPostOwner = await redisClient.get(`blogpost:${postId}`, "username");
+        const blogPostOwner = await redisClient.hGet(`blogpost:${postId}`, "author");
 
-        if (blogPostOwner !== username || role !== "admin") {
+        if (blogPostOwner !== username && role !== "admin") {
             console.log(blogPostOwner, username)
             return res.status(403).send(
                 "Forbidden: You are not the owner of this blog post and therefore cannot delete the post");
