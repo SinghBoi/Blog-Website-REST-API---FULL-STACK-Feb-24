@@ -2,7 +2,7 @@ import express from "express";
 import session from "express-session";
 import { createClient } from "redis";
 import RedisStore from "connect-redis";
-import { compareSync, hashSync } from "bcrypt";
+import bcrypt from 'bcryptjs';
 import cookieParser from "cookie-parser";
 import bodyParser from "body-parser";
 import path from "path";
@@ -10,7 +10,7 @@ import { dirname } from "path";
 import { fileURLToPath } from "url";
 import crypto from "crypto";
 import helmet from "helmet";
-import moment from "moment";
+import moment from "moment/moment.js";
 import sanitize from "sanitize-html";
 
 const app = express();
@@ -30,7 +30,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname)));
 
 app.set("view engine", "ejs");
-app.set("views", path.join(__dirname, "views"));
+app.set("views", path.join(__dirname, "/Public/views"));
 
 const crypton = crypto.randomBytes(16).toString("base64");
 
@@ -113,9 +113,9 @@ app.get("/auth/github/callback", async (req, res) => {
         const userExists = await redisClient.exists(`user:${req.session.username}`);
 
         if (!userExists) {
-            await redisClient.hSet(`user:${req.session.username}`, "role", "user");
+            await redisClient.set(`user:${req.session.username}`, "role", "user");
         }
-        res.redirect("/BlogView");
+        res.redirect("/Main");
     } catch (error) {
         console.error("Error during GitHub callback:", error);
         res.status(500).send("Internal Server Error");
@@ -139,7 +139,7 @@ app.get("/", (req, res) => {
 // Inloggningsroute
 app.get("/login", (req, res) => {
     if (req.session.authenticated) {
-        res.redirect("/BlogView");
+        res.redirect("/Main");
     } else {
         const filePath = path.join(__dirname, "public", "index.html");
         res.sendFile(filePath);
@@ -155,8 +155,9 @@ app.post("/login", async (req, res) => {
             return res.status(401).send("No Such Username Exists");
         }
 
-        const dbPassword = await redisClient.hGet(`user:${username}`);
-        if (!compareSync(password, dbPassword)) {
+        const dbPassword = await redisClient.get(`user:${username}`, "password");
+        console.log(dbPassword);
+        if (!bcrypt.compare(password, dbPassword)) {
             // Invalid credentials
             return res.status(401).send("Invalid Credentials");
         }
@@ -167,8 +168,8 @@ app.post("/login", async (req, res) => {
         req.session.isLoggedIn = true;
 
         // Successful login, send a success message
-        res.status(200).send("Login Successful");
-        res.redirect("/BlogView");
+        // res.status(200).send("Login Successful");
+        res.redirect("/Main");
     } catch (err) {
         console.error(err, "error during login");
         res.status(500).send("Internal Server Error");
@@ -197,19 +198,19 @@ app.post("/register", async (req, res) => {
         );
     }
 
-    const hashedPassword = hashSync(password, 10);
-    await redisClient.hSet(`user:${username}`, hashedPassword);
-    await redisClient.hSet(`user:${newUsername}`, "role", "user");
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await redisClient.set(`user:${username}`, hashedPassword);
+    await redisClient.set(`user:${username}`, "role", "user");
 
     res.status(200).send("Registered Successfully");
 });
 
-app.get("/BlogView", authenticate, async (req, res) => {
-    const role = await redisClient.hGet(`user:${req.session.username}`, "role");
+app.get("/Main", authenticate, async (req, res) => {
+    await redisClient.get(`user:${req.session.username}`, "role");
     try {
         const blogPosts = await getAllBlogPosts();
-        res.render("BlogView",
-            { username: req.session.username, blogPosts, csrfToken: req.session.csrfToken, crypto });
+        res.render("Main",
+            { username: req.session.username, blogPosts, csrfToken: req.session.csrfToken, crypton });
     } catch (error) {
         console.error("Error retrieving blog posts:", error);
         res.status(500).send("Internal Server Error");
@@ -233,20 +234,17 @@ const getAllBlogPosts = async () => {
 };
 
 // Create Post
-app.post("/BlogView/create-post", verifyCsrfToken, authenticate, async (req, res) => {
+app.post("/Main/create", verifyCsrfToken, authenticate, async (req, res) => {
     try {
         const { title, content } = req.body;
-        if (!title || !content) {
-            return res.status(400).send("Incomplete Post.");
-        }
 
-        const userName = req.session.username;
+        const username = req.session.username;
         const postId = await redisClient.incr("nextPostId");
         const newPost = {
             postId,
             title,
             content,
-            author: userName,
+            author: username,
             created: moment(new Date()).format("YYYY-MM-DD HH:mm"),
         };
 
@@ -256,9 +254,9 @@ app.post("/BlogView/create-post", verifyCsrfToken, authenticate, async (req, res
             allowedAttributes: {},
         });
 
-        await redisClient.hSet(`NewPost:${postId}`, newPost);
+        await redisClient.hSet(`blogpost:${postId}`, newPost);
         blogPosts = await getAllBlogPosts();
-        res.redirect("/BlogView")
+        res.redirect("/Main")
     } catch (error) {
         console.error("Error adding blog post to Redis:", error);
         res.status(500).send("Internal Server Error");
@@ -271,6 +269,7 @@ const getAllComments = async (postId) => {
     const comments = await Promise.all(
         commentIds.map(async (commentId) => {
             const commentData = await redisClient.hGetAll(commentId);
+            console.log(commentData)
             return { commentId: commentId.split(':')[2], ...commentData };
         })
     );
@@ -279,7 +278,7 @@ const getAllComments = async (postId) => {
 };
 
 // Add a comment to a blog post
-app.post("/BlogView/comment/:postId", verifyCsrfToken, authenticate, async (req, res) => {
+app.post("/Main/comment/:postId", verifyCsrfToken, authenticate, async (req, res) => {
     try {
         const postId = req.params.postId;
         const { content } = req.body;
@@ -292,7 +291,7 @@ app.post("/BlogView/comment/:postId", verifyCsrfToken, authenticate, async (req,
 
         const newComment = {
             commentId,
-            content: commentContent,
+            content,
             author: username,
             created: moment(new Date()).format("YYYY-MM-DD HH:mm"),
         }
@@ -307,9 +306,7 @@ app.post("/BlogView/comment/:postId", verifyCsrfToken, authenticate, async (req,
         await redisClient.hSet(`comment:${postId}:${commentId}`, newComment);
         const post = await redisClient.hGetAll(`blogpost:${postId}`);
         post.comments = await getAllComments(postId);
-
-        console.log("Comment Created")
-        res.redirect("/BlogView");
+        res.redirect("/Main");
     } catch (error) {
         console.error("Error adding comment to Redis:", error);
         res.status(500).send("Internal Server Error");
@@ -317,14 +314,14 @@ app.post("/BlogView/comment/:postId", verifyCsrfToken, authenticate, async (req,
 });
 
 // Delete a blog post along with its comments
-app.post("/BlogView/delete-post/:postId", authenticate, async (req, res) => {
+app.post("/Main/delete/:postId", authenticate, async (req, res) => {
     try {
         const postId = req.params.postId;
         const username = req.session.username;
-        const role = await redisClient.hGet(`user:${req.session.username}`, "role");
-        const blogPostOwner = await redisClient.hGet(`blogpost:${postId}`, "username");
+        const role = await redisClient.get(`user:${username}`, "role");
+        const blogPostOwner = await redisClient.get(`blogpost:${postId}`, "username");
 
-        if (blogPostOwner !== username && role !== "admin") {
+        if (blogPostOwner !== username || role !== "admin") {
             console.log(blogPostOwner, username)
             return res.status(403).send(
                 "Forbidden: You are not the owner of this blog post and therefore cannot delete the post");
@@ -332,7 +329,7 @@ app.post("/BlogView/delete-post/:postId", authenticate, async (req, res) => {
         await redisClient.del(`blogpost:${postId}`);
         console.log("deleted")
         blogPosts = await getAllBlogPosts();
-        res.redirect("/BlogView")
+        res.redirect("/Main")
     } catch (error) {
         console.error("Error deleting post:", error);
         res.status(500).send("Internal Server Error");

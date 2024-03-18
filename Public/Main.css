@@ -80,7 +80,7 @@ button {
     resize: vertical;
 }
 
-.deleteButton {
+.delete {
     width: fit-content;
     align-self: flex-end;
     margin-right: 30px;
@@ -94,5 +94,9 @@ button {
 }
 
 .com {
+    border-bottom: 1px solid black;
+}
+
+.right {
     text-align: end;
 }
