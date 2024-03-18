@@ -59,10 +59,14 @@ input[type="submit"] {
     margin: 0 auto;
     display: block;
     background-color: #007bff;
-    color: #fff;
+    color: #0c0c0c;
     cursor: pointer;
 }
 
 input[type="submit"]:hover {
     background-color: #0056b3;
+}
+
+.github {
+    margin-top: 90px;
 }

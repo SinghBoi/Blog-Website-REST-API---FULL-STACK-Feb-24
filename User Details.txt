@@ -1,0 +1,7 @@
+ADMIN
+User : maninder Password : Qwer@1234
+
+User
+User : nato Password : Qazx@1234
+User : emma Password : Qazx@1234
+User : john Password : Qazx@1234

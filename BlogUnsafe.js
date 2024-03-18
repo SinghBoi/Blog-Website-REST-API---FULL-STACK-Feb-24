@@ -11,7 +11,6 @@ import { fileURLToPath } from "url";
 import crypto from "crypto";
 import helmet from "helmet";
 import moment from "moment/moment.js";
-import sanitize from "sanitize-html";
 
 const app = express();
 
@@ -137,7 +136,7 @@ app.get("/", (req, res) => {
 });
 
 // Login route
-app.get("/", (req, res) => {    
+app.get("/", (req, res) => {
     if (req.session.authenticated) {
         res.redirect("/Main");
     } else {
@@ -230,6 +229,9 @@ const getAllBlogPosts = async () => {
     return blogPosts;
 };
 
+// With the XSS protections removed, you can send e.g.
+// <script>alert("XSS Attack!");</script> via a Post Creation.
+
 // Create Post
 app.post("/Main/create", verifyCsrfToken, authenticate, async (req, res) => {
     try {
@@ -244,12 +246,6 @@ app.post("/Main/create", verifyCsrfToken, authenticate, async (req, res) => {
             author: username,
             created: moment(new Date()).format("YYYY-MM-DD HH:mm"),
         };
-
-        // XSS = protection against inserting unauthorized <script, img etc>
-        newPost.content = sanitize(newPost.content, {
-            allowedTags: ["b", "i", "u", "strong", "em", "br",],
-            allowedAttributes: {},
-        });
 
         await redisClient.hSet(`blogpost:${postId}`, newPost);
         blogPosts = await getAllBlogPosts();
@@ -273,6 +269,9 @@ const getAllComments = async (postId) => {
     return comments;
 };
 
+// With the XSS protections removed, you can send e.g.
+// <script>alert("XSS Attack!");</script> via a comment.
+
 // Add a comment to a blog post
 app.post("/Main/comment/:postId", verifyCsrfToken, authenticate, async (req, res) => {
     try {
@@ -291,12 +290,6 @@ app.post("/Main/comment/:postId", verifyCsrfToken, authenticate, async (req, res
             author: username,
             created: moment(new Date()).format("YYYY-MM-DD HH:mm"),
         }
-
-        // XSS = protection against inserting unauthorized <script, img etc>
-        newComment.content = sanitize(newComment.content, {
-            allowedTags: ["b", "i", "u", "strong", "em", "br",],
-            allowedAttributes: {},
-        });
 
         // Update the Comments in the Post
         await redisClient.hSet(`comment:${postId}:${commentId}`, newComment);
