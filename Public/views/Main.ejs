@@ -6,7 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blog Site - Main</title>
     <link rel="stylesheet" href="/public/Main.css">
-    <script defer src="../public/Delete.js" crypton="<%= crypton %>"></script>
 </head>
 
 <body>
@@ -33,9 +32,8 @@
                             <p class="post-content"><%- post.content %></p>
                             <p class="poster">Posted By: <%= post.author %></p>
                             <p class="time">Posted At: <%= post.created?.toLocaleString() %></p>
-                            <!-- <button type="button" data-postid="<%= post.postId%>" class="delete">Delete Post</button> -->
-                            <form action="/Main/delete/<%= post.postId%>" method="post">
-                                <button type="submit" >Delete Post</button>
+                            <form class="delete" action="/Main/delete/<%= post.postId%>" method="post">
+                                <button type="submit">Delete Post</button>
                             </form>
                             <div class="comment-container">
                                 <h4>Comments</h4>

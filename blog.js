@@ -113,7 +113,7 @@ app.get("/auth/github/callback", async (req, res) => {
         const userExists = await redisClient.exists(`user:${req.session.username}`);
 
         if (!userExists) {
-            await redisClient.set(`user:${req.session.username}`, "role", "user");
+            await redisClient.hSet(`user:${req.session.username}`, "role", "user");
         }
         res.redirect("/Main");
     } catch (error) {
@@ -155,7 +155,7 @@ app.post("/login", async (req, res) => {
             return res.status(401).send("No Such Username Exists");
         }
 
-        const dbPassword = await redisClient.get(`user:${username}`, "password");
+        const dbPassword = await redisClient.hGet(`user:${username}`, "password");
         if (!bcrypt.compare(password, dbPassword)) {
             // Invalid credentials
             return res.status(401).send("Invalid Credentials");
@@ -198,14 +198,14 @@ app.post("/register", async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    await redisClient.set(`user:${username}`, hashedPassword);
-    await redisClient.set(`user:${username}`, "role", "user");
+    await redisClient.hSet(`user:${username}`, "password", hashedPassword);
+    await redisClient.hSet(`user:${username}`, "role", "user");
 
     res.status(200).send("Registered Successfully");
 });
 
 app.get("/Main", authenticate, async (req, res) => {
-    await redisClient.get(`user:${req.session.username}`, "role");
+    await redisClient.hGet(`user:${req.session.username}`, "role");
     try {
         const blogPosts = await getAllBlogPosts();
         res.render("Main",
@@ -316,7 +316,7 @@ app.post("/Main/delete/:postId", authenticate, async (req, res) => {
     try {
         const postId = req.params.postId;
         const username = req.session.username;
-        const role = await redisClient.get(`user:${username}`, "role");
+        const role = await redisClient.hGet(`user:${username}`, "role");
         const blogPostOwner = await redisClient.hGet(`blogpost:${postId}`, "author");
 
         if (blogPostOwner !== username && role !== "admin") {

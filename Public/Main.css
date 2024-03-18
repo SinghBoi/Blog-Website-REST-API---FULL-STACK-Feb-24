@@ -81,9 +81,8 @@ button {
 }
 
 .delete {
-    width: fit-content;
-    align-self: flex-end;
     margin-right: 30px;
+    align-self: flex-end;
 }
 
 .comment-container {
